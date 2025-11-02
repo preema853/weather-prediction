@@ -19,7 +19,3 @@ based on historical environmental data.
 - **Backend:** Python, Flask  
 - **Machine Learning:** Scikit-learn  
 - **Models Saved As:** `.joblib` files  
-
----
-
-## 🧩 Project Structure
