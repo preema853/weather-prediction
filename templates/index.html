@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Prediction UI</title>
+    <style>
+        /* ---- Soft Neumorphism Pastel Blue Theme ---- */
+        :root {
+            --bg: #e8f2ff;
+            --light: #f5faff;
+            --shadow-light: #ffffff;
+            --shadow-dark: #c5d4e5;
+            --accent: #5c9cff;
+            --text-dark: #2b2b2b;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 30px;
+            background: var(--bg);
+        }
+
+        .container {
+            max-width: 650px;
+            margin: auto;
+            padding: 25px;
+            border-radius: 18px;
+            background: var(--bg);
+            box-shadow:
+                8px 8px 16px var(--shadow-dark),
+                -8px -8px 16px var(--shadow-light);
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        /* ---- Tabs ---- */
+        .tab-buttons {
+            display: flex;
+            background: var(--bg);
+            padding: 8px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            box-shadow: inset 6px 6px 12px var(--shadow-dark),
+                        inset -6px -6px 12px var(--shadow-light);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: #4b4b4b;
+            font-size: 15px;
+            border-radius: 10px;
+            transition: 0.2s;
+        }
+
+        .tab-button.active {
+            background: var(--light);
+            color: var(--accent);
+            font-weight: 600;
+            box-shadow:
+                4px 4px 8px var(--shadow-dark),
+                -4px -4px 8px var(--shadow-light);
+        }
+
+        /* ---- Content ---- */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .tab-content.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        form {
+            display: grid;
+            gap: 12px;
+        }
+
+        label {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        input, select, button {
+            padding: 12px;
+            font-size: 16px;
+            border-radius: 12px;
+            border: none;
+            outline: none;
+            background: var(--bg);
+            box-shadow:
+                inset 4px 4px 8px var(--shadow-dark),
+                inset -4px -4px 8px var(--shadow-light);
+        }
+
+        button {
+            background: var(--accent);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: none;
+        }
+
+        button:hover {
+            background: #4a8ceb;
+        }
+
+        /* ---- Output Boxes ---- */
+        .output {
+            margin-top: 20px;
+            padding: 18px;
+            border-radius: 14px;
+            background: var(--light);
+            box-shadow:
+                6px 6px 12px var(--shadow-dark),
+                -6px -6px 12px var(--shadow-light);
+        }
+
+        .error {
+            background: #ffecec;
+            color: #b20000;
+            border-left: 4px solid red;
+        }
+
+        ul { margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Weather Predictor</h2>
+
+        <div class="tab-buttons">
+            <button class="tab-button active" onclick="openTab(event, 'tab1')">Weather Predictor</button>
+            <button class="tab-button" onclick="openTab(event, 'tab2')">Details Predictor</button>
+        </div>
+
+        <div id="tab1" class="tab-content active">
+            <h3>Predict Weather Type</h3>
+            <p>Enter environmental details to predict the weather summary.</p>
+
+            <form id="weather-form">
+                <label for="temp1">Temperature (C):</label>
+                <input id="temp1" type="number" value="20.0" step="0.1" required>
+
+                <label for="humidity">Humidity:</label>
+                <input id="humidity" type="number" value="0.8" min="0.0" max="1.0" step="0.01" required>
+
+                <label for="pressure">Pressure (millibars):</label>
+                <input id="pressure" type="number" value="1010" step="0.1" required>
+
+                <label for="wind_speed">Wind Speed (km/h):</label>
+                <input id="wind_speed" type="number" value="10" step="0.1" required>
+
+                <button type="submit">Predict Weather</button>
+            </form>
+            <div id="output1" class="output" style="display:none;"></div>
+        </div>
+
+        <div id="tab2" class="tab-content">
+            <h3>Predict Environment Details</h3>
+            <p>Enter a temperature and weather type to predict other details.</p>
+
+            <form id="details-form">
+                <label for="temp2">Temperature (C):</label>
+                <input id="temp2" type="number" value="20.0" step="0.1" required>
+
+                <label for="summary">Weather:</label>
+                <select id="summary" required>
+                    {% for s in summaries %}
+                        <option value="{{ s }}" {% if s == 'Partly Cloudy' %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                </select>
+
+                <button type="submit">Predict Details</button>
+            </form>
+            <div id="output2" class="output" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tabbuttons;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tabbuttons = document.getElementsByClassName("tab-button");
+            for (i = 0; i < tabbuttons.length; i++) {
+                tabbuttons[i].className = tabbuttons[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        document.getElementById("weather-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const data = {
+                temp: document.getElementById("temp1").value,
+                humidity: document.getElementById("humidity").value,
+                pressure: document.getElementById("pressure").value,
+                wind_speed: document.getElementById("wind_speed").value
+            };
+            const outputDiv = document.getElementById("output1");
+            outputDiv.style.display = 'none';
+            try {
+                const response = await fetch('/predict_weather', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    outputDiv.className = 'output';
+                    outputDiv.innerHTML = `
+                        <h4>✅ Predicted Weather: ${result.prediction}</h4>
+                        <p><strong>Action:</strong> ${result.action}</p>
+                    `;
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+            } catch (error) {
+                outputDiv.className = 'output error';
+                outputDiv.innerHTML = `<h4>Error</h4><p>${error.message}</p>`;
+            }
+            outputDiv.style.display = 'block';
+        });
+
+        document.getElementById("details-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            const data = {
+                temp: document.getElementById("temp2").value,
+                summary: document.getElementById("summary").value
+            };
+            const outputDiv = document.getElementById("output2");
+            outputDiv.style.display = 'none';
+            try {
+                const response = await fetch('/predict_details', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (response.ok) {
+                    outputDiv.className = 'output';
+                    outputDiv.innerHTML = `
+                        <h4>✅ Prediction Successful:</h4>
+                        <ul>
+                            <li>Predicted Humidity: ${result.humidity}</li>
+                            <li>Predicted Pressure: ${result.pressure} mb</li>
+                            <li>Predicted Wind Speed: ${result.wind_speed} km/h</li>
+                        </ul>
+                    `;
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+            } catch (error) {
+                outputDiv.className = 'output error';
+                outputDiv.innerHTML = `<h4>Error</h4><p>${error.message}</p>`;
+            }
+            outputDiv.style.display = 'block';
+        });
+    </script>
+</body>
+</html>
