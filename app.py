@@ -6,7 +6,6 @@ from flask import Flask, render_template, request, jsonify
 # Initialize the Flask app
 app = Flask(__name__)
 
-# --- Load Models and Metadata ONCE at startup ---
 try:
     model_weather = joblib.load('model_weather.joblib')
     model_env = joblib.load('model_env.joblib')
@@ -28,7 +27,7 @@ def home():
 @app.route('/predict_weather', methods=['POST'])
 def predict_weather():
     try:
-        # Get data from the web form (sent as JSON)
+        # Get data from the web form 
         data = request.json
         
         # Create a DataFrame in the exact format the model expects
@@ -43,15 +42,15 @@ def predict_weather():
         # Make prediction
         prediction = model_weather.predict(user_input_df)[0]
         
-        # Determine the action string (same logic as your notebook)
+        # Determine the action string 
         if "Rain" in prediction:
-            action = "Carry an umbrella ☔"
+            action = "Carry an umbrella"
         elif "Clear" in prediction or "Sunny" in prediction:
-            action = "Wear sunglasses 😎"
+            action = "Wear sunglasses"
         elif "Cloud" in prediction:
-            action = "Stay updated with weather news ☁️"
+            action = "Stay updated with weather news"
         else:
-            action = "Check local forecast for details 🌦️"
+            action = "Check local forecast for details"
             
         # Send the result back as JSON
         return jsonify({'prediction': prediction, 'action': action})
@@ -68,7 +67,6 @@ def predict_details():
         temp = float(data['temp'])
         summary = data['summary']
         
-        # --- Recreate the One-Hot Encoding ---
         # Create a DataFrame with all possible columns, initialized to 0
         encoded_input = pd.DataFrame(0, index=[0], columns=model_env_cols)
         
@@ -80,7 +78,7 @@ def predict_details():
         if weather_col in encoded_input.columns:
             encoded_input[weather_col] = 1
         else:
-            # Handle case where summary might be unknown (though dropdown prevents this)
+            # Handle case where summary might be unknown
             print(f"Warning: Summary '{summary}' not in model columns.")
 
         # Ensure column order is exactly the same as during training
