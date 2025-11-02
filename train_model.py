@@ -42,14 +42,6 @@ model_env = DecisionTreeRegressor(random_state=42)
 model_env.fit(X2, y2)
 print("Model 2 (Environment Details Predictor) training complete.")
 
-# 1. Make predictions on the test data
-y_pred = model_weather.predict(X_test)
-
-# 2. Compare the predictions to the real answers
-accuracy = accuracy_score(y_test, y_pred)
-
-print(f"Model 1 Accuracy: {accuracy * 100:.2f}%")
-
 # --- 3. Save Models and Metadata ---
 joblib.dump(model_weather, 'model_weather.joblib')
 joblib.dump(model_env, 'model_env.joblib')
